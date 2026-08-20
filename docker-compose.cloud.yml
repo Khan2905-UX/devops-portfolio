@@ -1,0 +1,6 @@
+services:
+  app:
+    image: khan9205/devops-portfolio:v1
+    env_file: [ .env ]
+    ports: [ "3000:3000" ]
+    restart: unless-stopped
