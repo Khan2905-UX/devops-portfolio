@@ -41,3 +41,24 @@ npm test
 
 - `GET /` - health endpoint with environment info
 - `GET /api/health` - health check endpoint
+
+## Containerization
+
+Build the Docker image:
+
+```bash
+docker build -t devops-portfolio-api .
+```
+
+Run with Docker:
+
+```bash
+docker run -p 3000:3000 --env NODE_ENV=production devops-portfolio-api
+```
+
+Or use Docker Compose:
+
+```bash
+docker-compose up --build
+```
+
