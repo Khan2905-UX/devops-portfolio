@@ -9,11 +9,11 @@ jobs:
     environment: dev
     runs-on: ubuntu-latest
 
-  steps:
-  - name: Checkout code
-    uses: actions/checkout@v4
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
 
- - name: Build Docker image
+      - name: Build Docker image
         run: docker build -t ${{ vars.DOCKER_IMAGE_NAME }}:latest .
 
       - name: Login to Docker Hub
@@ -21,23 +21,27 @@ jobs:
 
       - name: Push Docker image
         run: docker push ${{ vars.DOCKER_IMAGE_NAME }}:latest
- - name: Deploy to EC2
-  uses: appleboy/ssh-action@v1
-  with:
-    host: ${{ vars.SERVER_HOST }}
-    username: ${{ vars.SSH_USER }}
-    key: ${{ secrets.SSH_PRIVATE_KEY }}
-        script: |
-      docker pull ${{ vars.DOCKER_IMAGE_NAME }}:latest
-      docker stop profile-api || true
-      docker rm profile-api || true
-      cat <<EOF > .env
-      NODE_ENV=${{ vars.NODE_ENV }}
-      PORT=${{ vars.APPLICATION_PORT }}
-      DATABASE_URL=${{ secrets.DATABASE_URL }}
-      API_KEY=${{ secrets.API_KEY }}
-      EOF
-      docker run -d \
-        --name profile-api \
-        -p 3000:3000 \
-        ${{ vars.DOCKER_IMAGE_NAME }}:latest
+
+      - name: Deploy to EC2
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ vars.SERVER_HOST }}
+          username: ${{ vars.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            docker pull ${{ vars.DOCKER_IMAGE_NAME }}:latest
+            docker stop profile-api || true
+            docker rm profile-api || true
+
+            cat <<EOF > .env
+            NODE_ENV=${{ vars.NODE_ENV }}
+            PORT=${{ vars.APPLICATION_PORT }}
+            DATABASE_URL=${{ secrets.DATABASE_URL }}
+            API_KEY=${{ secrets.API_KEY }}
+            EOF
+
+            docker run -d \
+              --name profile-api \
+              -p 3000:3000 \
+              --env-file .env \
+              ${{ vars.DOCKER_IMAGE_NAME }}:latest
